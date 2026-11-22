@@ -425,3 +425,248 @@ class RecFNToRecFNSpec extends FMATester {
     check(test(64, 32))
   }
 }
+
+class AddFNSpec extends FMATester {
+  def test(f: Int): Seq[String] = {
+    test(s"AddRecF${f}",
+      () => new ValExec_AddFN(exp(f), sig(f)),
+      Seq(s"f${f}_add")
+    )
+  }
+  "AddFN F16" should "pass" in {
+    check(test(16))
+  }
+  "AddFN F32" should "pass" in {
+    check(test(32))
+  }
+  "AddFN F64" should "pass" in {
+    check(test(64))
+  }
+}
+
+class MulFNSpec extends FMATester {
+  def test(f: Int): Seq[String] = {
+    test(s"MulRecF${f}",
+      () => new ValExec_MulFN(exp(f), sig(f)),
+      Seq(s"f${f}_mul")
+    )
+  }
+  "MulFN F16" should "pass" in {
+    check(test(16))
+  }
+  "MulFN F32" should "pass" in {
+    check(test(32))
+  }
+  "MulFN F64" should "pass" in {
+    check(test(64))
+  }
+}
+
+class MulAddFNSpec extends FMATester {
+  def test(f: Int): Seq[String] = {
+    test(s"MulAddRecF${f}",
+      () => new ValExec_MulAddFN(exp(f), sig(f)),
+      Seq(s"f${f}_mulAdd")
+    )
+  }
+  "MulAddFN F16" should "pass" in {
+    check(test(16))
+  }
+  "MulAddFN F32" should "pass" in {
+    check(test(32))
+  }
+  "MulAddFN F64" should "pass" in {
+    check(test(64))
+  }
+}
+
+class CompareFNSpec extends FMATester {
+  def test(f: Int, fn: String): Seq[String] = {
+    val generator = fn match {
+      case "lt" => () => new ValExec_CompareFN_lt(exp(f), sig(f))
+      case "le" => () => new ValExec_CompareFN_le(exp(f), sig(f))
+      case "eq" => () => new ValExec_CompareFN_eq(exp(f), sig(f))
+    }
+    test(
+      s"CompareRecF${f}_$fn",
+      generator,
+      "CompareRecFN.cpp",
+      Seq(Seq(s"f${f}_${fn}"))
+    )
+  }
+
+  "CompareFN F16_lt" should "pass" in {
+    check(test(16, "lt"))
+  }
+  "CompareFN F32_lt" should "pass" in {
+    check(test(32, "lt"))
+  }
+  "CompareFN F64_lt" should "pass" in {
+    check(test(64, "lt"))
+  }
+  "CompareFN F16_le" should "pass" in {
+    check(test(16, "le"))
+  }
+  "CompareFN F32_le" should "pass" in {
+    check(test(32, "le"))
+  }
+  "CompareFN F64_le" should "pass" in {
+    check(test(64, "le"))
+  }
+  "CompareFN F16_eq" should "pass" in {
+    check(test(16, "eq"))
+  }
+  "CompareFN F32_eq" should "pass" in {
+    check(test(32, "eq"))
+  }
+  "CompareFN F64_eq" should "pass" in {
+    check(test(64, "eq"))
+  }
+}
+
+class INToFNSpec extends FMATester {
+  def test(i: Int, f: Int): Seq[String] = {
+    test(
+      s"I${i}ToRecF${f}",
+      () => new ValExec_INToFN(i, exp(f), sig(f)),
+      Seq("-level2", s"i${i}_to_f${f}")
+    )
+  }
+  "INToFN I32ToF16" should "pass" in {
+    check(test(32, 16))
+  }
+  "INToFN I32ToF32" should "pass" in {
+    check(test(32, 32))
+  }
+  "INToFN I32ToF64" should "pass" in {
+    check(test(32, 64))
+  }
+  "INToFN I64ToF16" should "pass" in {
+    check(test(64, 16))
+  }
+  "INToFN I64ToF32" should "pass" in {
+    check(test(64, 32))
+  }
+  "INToFN I64ToF64" should "pass" in {
+    check(test(64, 64))
+  }
+}
+
+class FNToINSpec extends FMATester {
+  def test(f: Int, i: Int): Seq[String] = {
+    val (softfloatArgs, dutArgs) = roundings.map { case (s, d) =>
+      (s +: Seq("-exact", "-level2", s"f${f}_to_i${i}"), Seq(d))
+    }.unzip
+    test(
+      s"RecF${f}ToI${i}",
+      () => new ValExec_FNToIN(exp(f), sig(f), i),
+      "RecFNToIN.cpp",
+      softfloatArgs,
+      Some(dutArgs)
+    )
+  }
+
+  "FNToIN F16ToI32" should "pass" in {
+    check(test(16, 32))
+  }
+  "FNToIN F16ToI64" should "pass" in {
+    check(test(16, 64))
+  }
+  "FNToIN F32ToI32" should "pass" in {
+    check(test(32, 32))
+  }
+  "FNToIN F32ToI64" should "pass" in {
+    check(test(32, 64))
+  }
+  "FNToIN F64ToI32" should "pass" in {
+    check(test(64, 32))
+  }
+  "FNToIN F64ToI64" should "pass" in {
+    check(test(64, 64))
+  }
+}
+
+class FNToFNSpec extends FMATester {
+  def test(f0: Int, f1: Int): Seq[String] = {
+    test(
+      s"RecF${f0}ToRecF${f1}",
+      () => new ValExec_FNToFN(exp(f0), sig(f0), exp(f1), sig(f1)),
+      Seq("-level2", s"f${f0}_to_f${f1}")
+    )
+  }
+  "FNToFN F16ToF32" should "pass" in {
+    check(test(16, 32))
+  }
+  "FNToFN F16ToF64" should "pass" in {
+    check(test(16, 64))
+  }
+  "FNToFN F32ToF16" should "pass" in {
+    check(test(32, 16))
+  }
+  "FNToFN F32ToF64" should "pass" in {
+    check(test(32, 64))
+  }
+  "FNToFN F64ToF16" should "pass" in {
+    check(test(64, 16))
+  }
+  "FNToFN F64ToF32" should "pass" in {
+    check(test(64, 32))
+  }
+}
+
+class DivSqrtF64FNSpec extends FMATester {
+  def test(fn: String): Seq[String] = {
+    val generator = fn match {
+      case "div" => () => new ValExec_DivSqrtF64_div
+      case "sqrt" => () => new ValExec_DivSqrtF64_sqrt
+    }
+    test(
+      s"DivSqrtRecF64_${fn}",
+      generator,
+      (if (fn == "sqrt") Seq("-level2") else Seq.empty) ++ Seq(s"f64_${fn}")
+    )
+  }
+  "DivSqrtF64 div" should "pass" in {
+    check(test("div"))
+  }
+  "DivSqrtF64 sqrt" should "pass" in {
+    check(test("sqrt"))
+  }
+}
+
+class DivSqrtFN_smallSpec extends FMATester {
+  def test(f: Int, fn: String): Seq[String] = {
+    def generator(options: Int) = fn match {
+      case "div" => () => new ValExec_DivSqrtFN_small_div(exp(f), sig(f), options)
+      case "sqrt" => () => new ValExec_DivSqrtFN_small_sqrt(exp(f), sig(f), options)
+    }
+    test(
+      s"DivSqrtRecF${f}_small_${fn}",
+      generator(0),
+      (if (fn == "sqrt") Seq("-level2") else Seq.empty) ++ Seq(s"f${f}_${fn}")
+    )
+    test(
+      s"DivSqrtRecF${f}_small_${fn}",
+      generator(consts.divSqrtOpt_twoBitsPerCycle),
+      (if (fn == "sqrt") Seq("-level2") else Seq.empty) ++ Seq(s"f${f}_${fn}")
+    )
+  }
+  "DivSqrtFN small F16_div" should "pass" in {
+    check(test(16, "div"))
+  }
+  "DivSqrtFN small F32_div" should "pass" in {
+    check(test(32, "div"))
+  }
+  "DivSqrtFN small F64_div" should "pass" in {
+    check(test(64, "div"))
+  }
+  "DivSqrtFN small F16_sqrt" should "pass" in {
+    check(test(16, "sqrt"))
+  }
+  "DivSqrtFN small F32_sqrt" should "pass" in {
+    check(test(32, "sqrt"))
+  }
+  "DivSqrtFN small F64_sqrt" should "pass" in {
+    check(test(64, "sqrt"))
+  }
+}

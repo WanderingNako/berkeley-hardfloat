@@ -50,4 +50,17 @@ package object test
             Mux((top4A(2, 0) === 6.U), (top4A === top4B), (a === b))
         )
     }
+
+    def equivFN(expWidth: Int, sigWidth: Int, a: UInt, b: UInt) =
+    {
+        val isSpecialA = a(expWidth + sigWidth - 2, sigWidth - 1).andR
+        val isSpecialB = b(expWidth + sigWidth - 2, sigWidth - 1).andR
+        Mux(isSpecialA || isSpecialB,
+            isSpecialA && isSpecialB &&
+                (a(expWidth + sigWidth - 1) === b(expWidth + sigWidth - 1)) &&
+                Mux(a(sigWidth - 1) && b(sigWidth - 1),
+                    a(sigWidth - 2, 0) === b(sigWidth - 2, 0),
+                    a(sigWidth - 1) === b(sigWidth - 1)),
+            a === b)
+    }
 }
